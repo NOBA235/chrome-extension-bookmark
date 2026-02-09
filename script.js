@@ -10,7 +10,20 @@
       this.exportFormat = 'json';
       this.tags = new Set();
       this.initialize();
+      this.theme = localStorage.getItem('markflow_theme') || 'light';
+document.documentElement.setAttribute('data-theme', this.theme);
+
     }
+
+
+    toggleTheme() {
+  this.theme = this.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', this.theme);
+  localStorage.setItem('markflow_theme', this.theme);
+
+  const icon = document.querySelector('#themeToggle i');
+  icon.className = this.theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
 
     initialize() {
       this.setupEventListeners();
