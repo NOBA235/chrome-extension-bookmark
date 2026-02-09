@@ -1,4 +1,4 @@
-// Bookmark Manager Core Application
+  // Bookmark Manager Core Application
   class BookmarkManager {
     constructor() {
       this.bookmarks = this.loadBookmarks();
