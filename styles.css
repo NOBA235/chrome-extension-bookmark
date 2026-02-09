@@ -1009,3 +1009,18 @@
 
     .text-center { text-align: center; }
     .hidden { display: none; }
+    @media (max-width: 768px) {
+  .quick-actions {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 80px;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .quick-actions .action-btn {
+    width: auto;
+    min-width: 120px;
+  }
+}
+
