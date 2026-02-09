@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Bookmark Manager</title>
+  <title>PinPoint - Smart Bookmark Manager</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="manifest" href="/manifest.json">
-  <Link rel="stylesheet" href="styles.css">
-   
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📌</text></svg>">
 </head>
 <body>
   <!-- Mobile Header -->
@@ -20,12 +20,28 @@
         <i class="fas fa-bookmark"></i>
       </div>
       <div class="logo-text">
-        <span class="logo-title">PinPoint
- 
-</span>
+        <span class="logo-title">PinPoint</span>
       </div>
     </div>
-    <div style="width: 44px;"></div>
+    <button class="mobile-search-btn" id="mobileSearchBtn" aria-label="Search">
+      <i class="fas fa-search"></i>
+    </button>
+  </div>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-modal">
+      <div class="search-header">
+        <i class="fas fa-search"></i>
+        <input type="text" class="search-modal-input" id="searchModalInput" placeholder="Search bookmarks..." autofocus>
+        <button class="close-search" id="closeSearch">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="search-results" id="searchResults">
+        <!-- Search results will appear here -->
+      </div>
+    </div>
   </div>
 
   <!-- Sidebar Overlay -->
@@ -33,28 +49,39 @@
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <div class="logo">
-      <div class="logo-icon">
-        <i class="fas fa-bookmark"></i>
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-bookmark"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">PinPoint</span>
+          <span class="logo-subtitle">Bookmark Manager</span>
+        </div>
       </div>
-      <div class="logo-text">
-        <span class="logo-title">Shelf</span>
-        <span class="logo-subtitle">Bookmark Manager</span>
-      </div>
-      
+      <button class="close-sidebar" id="closeSidebar">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
     
     <div class="nav-section">
       <ul class="nav-links">
         <li><a href="#" class="active" data-view="all"><i class="fas fa-home"></i> All Bookmarks</a></li>
         <li><a href="#" data-view="favorites"><i class="fas fa-star"></i> Favorites</a></li>
+        <li><a href="#" data-view="unread"><i class="fas fa-eye-slash"></i> Unread</a></li>
         <li><a href="#" data-view="archived"><i class="fas fa-archive"></i> Archived</a></li>
         <li><a href="#" data-view="recent"><i class="fas fa-history"></i> Recently Added</a></li>
+        <li><a href="#" id="showStats" data-modal="stats"><i class="fas fa-chart-bar"></i> Statistics</a></li>
       </ul>
     </div>
     
     <div class="nav-section">
-      <h3 class="nav-title">Tags</h3>
+      <div class="nav-title-row">
+        <h3 class="nav-title">Tags</h3>
+        <button class="add-tag-btn" id="addTagBtn" title="Add new tag">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
       <div class="tags-container" id="tagsList">
         <!-- Tags will be dynamically generated -->
       </div>
@@ -62,41 +89,90 @@
     
     <div class="nav-section mt-auto">
       <div class="nav-title">Storage</div>
-      <div style="background-color: var(--bg); border-radius: var(--radius-md); padding: 1rem;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+      <div class="storage-container">
+        <div class="storage-info">
           <span id="storageCount">0 bookmarks</span>
           <span id="storageSize">0 MB</span>
         </div>
-        <div style="height: 6px; background-color: var(--border); border-radius: 999px; overflow: hidden;">
-          <div id="storageBar" style="width: 0%; height: 100%; background: linear-gradient(to right, var(--primary), var(--secondary)); transition: width 0.3s ease;"></div>
+        <div class="storage-bar">
+          <div id="storageBar" style="width: 0%;"></div>
+        </div>
+        <div class="storage-actions">
+          <button class="storage-btn" id="backupBtn" title="Backup">
+            <i class="fas fa-save"></i>
+          </button>
+          <button class="storage-btn" id="restoreBtn" title="Restore">
+            <i class="fas fa-upload"></i>
+          </button>
         </div>
       </div>
+    </div>
+    
+    <div class="user-section">
+      <div class="user-avatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="user-info">
+        <div class="user-name">Local User</div>
+        <div class="user-status">Offline</div>
+      </div>
+      <button class="settings-btn" id="settingsBtn" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
     </div>
   </aside>
   
   <!-- Main Content -->
-  <main class="main-content">
+  <main class="main-content" id="mainContent">
     <div class="header">
       <div class="search-container">
         <i class="fas fa-search search-icon"></i>
         <input type="text" class="search-input" id="searchInput" placeholder="Search bookmarks by title, URL, or tag...">
+        <button class="search-clear" id="searchClear" style="display: none;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" id="gridViewBtn" title="Grid View">
+          <i class="fas fa-th"></i>
+        </button>
+        <button class="header-btn" id="listViewBtn" title="List View">
+          <i class="fas fa-list"></i>
+        </button>
+        <button class="header-btn" id="sortBtn" title="Sort">
+          <i class="fas fa-sort-amount-down"></i>
+        </button>
       </div>
     </div>
     
     <div class="content-header">
-      <h1 id="pageTitle">All Bookmarks</h1>
-      <p class="bookmark-count" id="bookmarkCount">0 bookmarks</p>
+      <div class="content-title">
+        <h1 id="pageTitle">All Bookmarks</h1>
+        <p class="bookmark-count" id="bookmarkCount">0 bookmarks</p>
+      </div>
+      <div class="content-actions">
+        <button class="action-btn primary" id="quickAddBtn">
+          <i class="fas fa-plus"></i> Quick Add
+        </button>
+      </div>
     </div>
 
-    <div class="bookmarks-container" id="bookmarksContainer">
+    <div class="bookmarks-container grid-view" id="bookmarksContainer">
       <!-- Bookmarks will be dynamically generated -->
       <div class="empty-state" id="emptyState">
-        <i class="fas fa-bookmark"></i>
+        <div class="empty-icon">
+          <i class="fas fa-bookmark"></i>
+        </div>
         <h3>No bookmarks yet</h3>
         <p>Add your first bookmark to get started!</p>
-        <button class="action-btn primary mt-3" id="addFirstBookmark">
-          <i class="fas fa-plus"></i> Add Bookmark
-        </button>
+        <div class="empty-actions">
+          <button class="action-btn primary" id="addFirstBookmark">
+            <i class="fas fa-plus"></i> Add Bookmark
+          </button>
+          <button class="action-btn" id="importFirstBookmark">
+            <i class="fas fa-file-import"></i> Import
+          </button>
+        </div>
       </div>
     </div>
   </main>
@@ -106,48 +182,76 @@
     <i class="fas fa-plus"></i>
   </button>
 
-  <!-- Quick Actions -->
+  <!-- Quick Actions Bar -->
   <div class="quick-actions" id="quickActions">
     <button id="themeToggle" class="action-btn">
-  <i class="fas fa-moon"></i>
-  Dark
-</button>
-
+      <i class="fas fa-moon"></i>
+      <span class="action-text">Dark Mode</span>
+    </button>
     <button class="action-btn" id="importBtn">
       <i class="fas fa-file-import"></i>
-      <span>Import</span>
+      <span class="action-text">Import</span>
     </button>
     <button class="action-btn" id="exportBtn">
       <i class="fas fa-file-export"></i>
-      <span>Export</span>
+      <span class="action-text">Export</span>
     </button>
     <button class="action-btn" id="selectBtn">
       <i class="fas fa-check-square"></i>
-      <span>Select</span>
+      <span class="action-text">Select</span>
     </button>
   </div>
 
   <!-- Bulk Actions Bar -->
   <div class="bulk-actions" id="bulkActions">
-    <div>
+    <div class="bulk-info">
       <span id="selectedCount">0</span> bookmarks selected
     </div>
     <div class="bulk-buttons">
-      <button class="action-btn" id="bulkFavoriteBtn">
+      <button class="action-btn" id="bulkReadBtn" title="Mark as read">
+        <i class="fas fa-eye"></i>
+      </button>
+      <button class="action-btn" id="bulkFavoriteBtn" title="Favorite">
         <i class="fas fa-star"></i>
-        Favorite
       </button>
-      <button class="action-btn" id="bulkArchiveBtn">
+      <button class="action-btn" id="bulkArchiveBtn" title="Archive">
         <i class="fas fa-archive"></i>
-        Archive
       </button>
-      <button class="action-btn danger" id="bulkDeleteBtn">
+      <button class="action-btn danger" id="bulkDeleteBtn" title="Delete">
         <i class="fas fa-trash"></i>
-        Delete
       </button>
       <button class="action-btn" id="bulkCancelBtn">
         Cancel
       </button>
+    </div>
+  </div>
+
+  <!-- Sort Dropdown -->
+  <div class="sort-dropdown" id="sortDropdown">
+    <div class="sort-option" data-sort="date-desc">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Date Added (Newest)</span>
+      <i class="fas fa-check check-icon"></i>
+    </div>
+    <div class="sort-option" data-sort="date-asc">
+      <i class="fas fa-calendar"></i>
+      <span>Date Added (Oldest)</span>
+      <i class="fas fa-check check-icon"></i>
+    </div>
+    <div class="sort-option" data-sort="title-asc">
+      <i class="fas fa-sort-alpha-down"></i>
+      <span>Title (A-Z)</span>
+      <i class="fas fa-check check-icon"></i>
+    </div>
+    <div class="sort-option" data-sort="title-desc">
+      <i class="fas fa-sort-alpha-down-alt"></i>
+      <span>Title (Z-A)</span>
+      <i class="fas fa-check check-icon"></i>
+    </div>
+    <div class="sort-option" data-sort="domain">
+      <i class="fas fa-globe"></i>
+      <span>Domain</span>
+      <i class="fas fa-check check-icon"></i>
     </div>
   </div>
 
@@ -156,32 +260,188 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="modalTitle">Add New Bookmark</h2>
+        <button class="modal-close" id="closeBookmarkModal">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
       <form id="bookmarkForm">
         <div class="form-group">
           <label for="bookmarkTitle">Title *</label>
-          <input type="text" id="bookmarkTitle" class="form-control" required placeholder="Enter bookmark title">
+          <input type="text" id="bookmarkTitle" class="form-control" required placeholder="Enter bookmark title" autofocus>
         </div>
         <div class="form-group">
           <label for="bookmarkUrl">URL *</label>
-          <input type="url" id="bookmarkUrl" class="form-control" required placeholder="https://example.com">
+          <div class="url-input-group">
+            <input type="url" id="bookmarkUrl" class="form-control" required placeholder="https://example.com">
+            <button type="button" class="url-paste-btn" id="pasteUrlBtn" title="Paste from clipboard">
+              <i class="fas fa-paste"></i>
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label for="bookmarkDescription">Description</label>
           <textarea id="bookmarkDescription" class="form-control" rows="3" placeholder="Brief description (optional)"></textarea>
         </div>
         <div class="form-group">
+          <label for="bookmarkNotes">Notes</label>
+          <textarea id="bookmarkNotes" class="form-control" rows="2" placeholder="Personal notes (optional)"></textarea>
+        </div>
+        <div class="form-group">
           <label>Tags</label>
           <div class="tag-input-container" id="tagInputContainer">
-            <input type="text" class="tag-input" id="tagInput" placeholder="Type and press Enter...">
+            <!-- Tags will be added here -->
           </div>
-          <div class="mt-2" id="suggestedTags"></div>
+          <input type="text" class="tag-input" id="tagInput" placeholder="Type and press Enter...">
+          <div class="tag-suggestions" id="tagSuggestions">
+            <!-- Suggested tags will appear here -->
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-check">
+            <input type="checkbox" id="bookmarkFavorite" class="form-checkbox">
+            <label for="bookmarkFavorite" class="form-check-label">
+              <i class="fas fa-star"></i> Favorite
+            </label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" id="bookmarkUnread" class="form-checkbox">
+            <label for="bookmarkUnread" class="form-check-label">
+              <i class="fas fa-eye-slash"></i> Mark as unread
+            </label>
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="action-btn flex-1" id="cancelModal">Cancel</button>
-          <button type="submit" class="action-btn primary flex-1" id="saveBookmark">Save Bookmark</button>
+          <button type="button" class="action-btn secondary" id="cancelModal">Cancel</button>
+          <button type="submit" class="action-btn primary" id="saveBookmark">Save Bookmark</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Quick Add Modal -->
+  <div class="modal quick-add-modal" id="quickAddModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Quick Add Bookmark</h2>
+        <button class="modal-close" id="closeQuickAddModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="quickAddForm">
+        <div class="form-group">
+          <input type="url" id="quickAddUrl" class="form-control" placeholder="Paste URL here..." autofocus>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="action-btn secondary" id="cancelQuickAdd">Cancel</button>
+          <button type="submit" class="action-btn primary" id="saveQuickAdd">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="modal-close" id="closeSettingsModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="general">General</button>
+        <button class="settings-tab" data-tab="appearance">Appearance</button>
+        <button class="settings-tab" data-tab="backup">Backup</button>
+      </div>
+      
+      <div class="settings-content">
+        <div class="settings-pane active" id="generalTab">
+          <div class="settings-group">
+            <h3>General Settings</h3>
+            <div class="setting-item">
+              <label>Default View</label>
+              <select id="defaultView" class="form-control">
+                <option value="all">All Bookmarks</option>
+                <option value="unread">Unread</option>
+                <option value="favorites">Favorites</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Bookmarks per page</label>
+              <select id="itemsPerPage" class="form-control">
+                <option value="20">20</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="autoFetchFavicon" checked>
+                Auto-fetch favicons
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-pane" id="appearanceTab">
+          <div class="settings-group">
+            <h3>Appearance</h3>
+            <div class="setting-item">
+              <label>Theme</label>
+              <div class="theme-options">
+                <button class="theme-option" data-theme="light">
+                  <i class="fas fa-sun"></i>
+                  <span>Light</span>
+                </button>
+                <button class="theme-option" data-theme="dark">
+                  <i class="fas fa-moon"></i>
+                  <span>Dark</span>
+                </button>
+                <button class="theme-option" data-theme="auto">
+                  <i class="fas fa-adjust"></i>
+                  <span>Auto</span>
+                </button>
+              </div>
+            </div>
+            <div class="setting-item">
+              <label>Default Layout</label>
+              <div class="layout-options">
+                <button class="layout-option active" data-layout="grid">
+                  <i class="fas fa-th"></i>
+                  <span>Grid</span>
+                </button>
+                <button class="layout-option" data-layout="list">
+                  <i class="fas fa-list"></i>
+                  <span>List</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-pane" id="backupTab">
+          <div class="settings-group">
+            <h3>Backup & Restore</h3>
+            <div class="setting-item">
+              <button class="action-btn primary full-width" id="backupNowBtn">
+                <i class="fas fa-download"></i> Backup Now
+              </button>
+            </div>
+            <div class="setting-item">
+              <button class="action-btn full-width" id="restoreNowBtn">
+                <i class="fas fa-upload"></i> Restore from Backup
+              </button>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="autoBackup">
+                Auto-backup weekly
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -190,82 +450,136 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2>Export Bookmarks</h2>
+        <button class="modal-close" id="closeExportModal">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <p>Choose export format:</p>
-      
-      <div class="export-options">
-        <div class="export-option" data-format="html">
-          <i class="fas fa-file-code fa-2x mb-2"></i>
-          <div>HTML File</div>
-          <small>Browser compatible</small>
-        </div>
-        <div class="export-option" data-format="json">
-          <i class="fas fa-database fa-2x mb-2"></i>
-          <div>JSON File</div>
-          <small>Backup & API</small>
-        </div>
-        <div class="export-option" data-format="csv">
-          <i class="fas fa-table fa-2x mb-2"></i>
-          <div>CSV File</div>
-          <small>Spreadsheets</small>
-        </div>
-        <div class="export-option" data-format="markdown">
-          <i class="fab fa-markdown fa-2x mb-2"></i>
-          <div>Markdown</div>
-          <small>Documentation</small>
+      <div class="export-section">
+        <label>Format:</label>
+        <div class="export-options">
+          <label class="export-option">
+            <input type="radio" name="exportFormat" value="json" checked>
+            <div class="export-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <div class="export-info">
+              <strong>JSON</strong>
+              <small>Full backup with metadata</small>
+            </div>
+          </label>
+          <label class="export-option">
+            <input type="radio" name="exportFormat" value="html">
+            <div class="export-icon">
+              <i class="fas fa-file-code"></i>
+            </div>
+            <div class="export-info">
+              <strong>HTML</strong>
+              <small>Browser compatible</small>
+            </div>
+          </label>
+          <label class="export-option">
+            <input type="radio" name="exportFormat" value="csv">
+            <div class="export-icon">
+              <i class="fas fa-table"></i>
+            </div>
+            <div class="export-info">
+              <strong>CSV</strong>
+              <small>Spreadsheets</small>
+            </div>
+          </label>
         </div>
       </div>
-      
+      <div class="export-section">
+        <label>Include:</label>
+        <div class="export-filters">
+          <label><input type="checkbox" id="exportFavorites" checked> Favorites</label>
+          <label><input type="checkbox" id="exportArchived"> Archived</label>
+          <label><input type="checkbox" id="exportTags" checked> Tags</label>
+          <label><input type="checkbox" id="exportNotes" checked> Notes</label>
+        </div>
+      </div>
       <div class="modal-footer">
-        <button class="action-btn flex-1" id="cancelExport">Cancel</button>
-        <button class="action-btn primary flex-1" id="confirmExport">Export</button>
+        <button type="button" class="action-btn secondary" id="cancelExport">Cancel</button>
+        <button type="button" class="action-btn primary" id="confirmExport">Export</button>
       </div>
     </div>
   </div>
 
   <!-- Statistics Modal -->
-  <div class="modal" id="statsModal">
+  <div class="modal wide-modal" id="statsModal">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Dashboard Statistics</h2>
+        <button class="modal-close" id="closeStatsModal">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
       <div class="stats-grid">
         <div class="stat-card">
-          <i class="fas fa-bookmark fa-2x" style="color: var(--primary);"></i>
+          <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">
+            <i class="fas fa-bookmark"></i>
+          </div>
           <div class="stat-value" id="totalBookmarksStat">0</div>
-          <div>Total Bookmarks</div>
+          <div class="stat-label">Total Bookmarks</div>
         </div>
         <div class="stat-card">
-          <i class="fas fa-star fa-2x" style="color: var(--warning);"></i>
+          <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+            <i class="fas fa-star"></i>
+          </div>
           <div class="stat-value" id="favoriteBookmarksStat">0</div>
-          <div>Favorites</div>
+          <div class="stat-label">Favorites</div>
         </div>
         <div class="stat-card">
-          <i class="fas fa-tags fa-2x" style="color: #8b5cf6;"></i>
+          <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+            <i class="fas fa-tags"></i>
+          </div>
           <div class="stat-value" id="totalTagsStat">0</div>
-          <div>Unique Tags</div>
+          <div class="stat-label">Unique Tags</div>
         </div>
         <div class="stat-card">
-          <i class="fas fa-calendar fa-2x" style="color: var(--danger);"></i>
+          <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">
+            <i class="fas fa-calendar"></i>
+          </div>
           <div class="stat-value" id="recentBookmarksStat">0</div>
-          <div>Added This Week</div>
+          <div class="stat-label">This Week</div>
         </div>
       </div>
       
-      <div class="mt-4">
+      <div class="stats-section">
         <h3>Most Used Tags</h3>
         <div class="tag-cloud" id="tagCloud">
           <!-- Tags will be populated here -->
         </div>
       </div>
       
-      <div class="modal-footer">
-        <button class="action-btn flex-1" id="closeStats">Close</button>
+      <div class="stats-section">
+        <div class="stats-row">
+          <div class="stats-col">
+            <h3>Top Domains</h3>
+            <div class="domain-list" id="domainList">
+              <!-- Domains will be populated here -->
+            </div>
+          </div>
+          <div class="stats-col">
+            <h3>Recent Activity</h3>
+            <div class="activity-list" id="activityList">
+              <!-- Activity will be populated here -->
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-<script src="script.js"> 
-</script>
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
+<script src="script.js"></script>
 </body>
 </html>
